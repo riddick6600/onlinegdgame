@@ -24,34 +24,40 @@ const restartField = () => {
   for (let i = 0; i < FIELD_SIZE * 20; i++) {
     field[i] = []
   for (let j = 0; j < FIELD_SIZE; j++) {
-    field[i][j] = (i % 2 && i> FIELD_SIZE) ? Math.round(Math.random()) : 0;
+    field[i][j] = (i % 2 && i > FIELD_SIZE / 2) ? Math.round(Math.random()) : 0;
   }}
   Object.keys(players).forEach(key => {
     const player = players[key];
-    player.position = [Math.round(Math.random() * FIELD_SIZE/2), Math.round(Math.random() * FIELD_SIZE)]
+    player.position = [Math.round(Math.random() * FIELD_SIZE/2), Math.round(Math.random() * (FIELD_SIZE-1))]
     field[player.position[0]][player.position[1]] = key
   });
 }
 restartField()
 
-const sendData = throttle(() => {
+const sendField = throttle(() => {
   io.emit('field', field);
-}, 300)
+}, 0)
+
+const sendPlayers = throttle(() => {
+  io.emit('players', players);
+}, 0)
 
 io.on('connection', function(socket){
-  io.emit('players', players);
-  sendData()
+  sendPlayers()
+  sendField()
 
   socket.on('new', function(data){
     data.position = [0, Object.keys(players).length]
     players[socket.id] = data;
     field[data.position[0]][data.position[1]] = socket.id
-    io.emit('players', players);
+    sendPlayers()
   });
 
   socket.on('start', () => {
     restartField();
-    sendData();
+    sendField();
+    sendPlayers();
+    io.emit('start');
   });
 
   socket.on('disconnect', () => {
@@ -59,7 +65,7 @@ io.on('connection', function(socket){
       const position = players[socket.id].position;
       field[position[0]][position[1]] = 0;
       delete players[socket.id];
-      io.emit('players', players);
+      sendPlayers()
     }
   })
 
@@ -94,7 +100,8 @@ io.on('connection', function(socket){
     players[socket.id].position = positionNew;
     field[positionOld[0]][positionOld[1]] = 0;
     field[positionNew[0]][positionNew[1]] = socket.id;
-    sendData();
+    sendPlayers();
+    // sendField();
   });
 });
 

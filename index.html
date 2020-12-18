@@ -12,6 +12,7 @@
 
     <style>
         body { overflow: hidden; margin:0; }
+        form {padding: 20px; text-align: center;}
         #action { 
             position: fixed;
             left: 0;
@@ -26,21 +27,42 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: silver;
+            background: silver url('swipe.gif') no-repeat center;
+            text-align:center;
         }
     </style>
   </head>
   <body>
     <form>
-      <input name="name" value="" required autocomplete="off" />
+      <input placeholder="Имя" name="name" value="" required autocomplete="off" />
+      <br /><br />
+      Цвет:
+      <br />
       <input type="color" name="color" autocomplete="off" />
-      <button>Send</button>
+      <br /><br />
+      <button>Запуск</button>
     </form>
-    <div id="action" style="display:none">Play</div>
+    <div id="action" style="display:none">
+      Свайпай
+      <br>
+      <br>
+      <br>
+      <br>
+      <br>
+      Смотри на экран
+    </div>
     <script>
       $(function () {
+        const name = localStorage.getItem('name');
+        const color = localStorage.getItem('color');
+        if (name) {
+          $('[name=name]').val(name)
+          $('[name=color]').val(color)
+        }
         var socket = io();
         $('form').submit(function(){
+          localStorage.setItem('name', $('[name=name]').val());
+          localStorage.setItem('color', $('[name=color]').val());
           socket.emit('new', {name:$('[name=name]').val(),color:$('[name=color]').val()});
           $('form').hide();
           $('#action').show();
