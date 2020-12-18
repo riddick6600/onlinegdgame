@@ -1,37 +1,55 @@
 <!doctype html>
 <html>
   <head>
-    <title>Socket.IO chat</title>
+    <title>GD Game</title>
+    
+    <meta name="viewport" content="width=device-width,height=device-height,user-scalable=no,initial-scale=1,maximum-scale=1" />
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+    <!-- <script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script> -->
+    <script src="swiped-events.js"></script>
+
     <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { font: 13px Helvetica, Arial; }
-      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
-      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
-      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
-      #messages { list-style-type: none; margin: 0; padding: 0; }
-      #messages li { padding: 5px 10px; }
-      #messages li:nth-child(odd) { background: #eee; }
-      #messages { margin-bottom: 40px }
+        body { overflow: hidden; margin:0; }
+        #action { 
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            top: 0;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-size: 40px;
+            font-family: arial;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: silver;
+        }
     </style>
   </head>
   <body>
-    <ul id="messages"></ul>
-    <form action="">
-      <input id="m" autocomplete="off" /><button>Send</button>
+    <form>
+      <input name="name" value="" required autocomplete="off" />
+      <input type="color" name="color" autocomplete="off" />
+      <button>Send</button>
     </form>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+    <div id="action" style="display:none">Play</div>
     <script>
       $(function () {
         var socket = io();
         $('form').submit(function(){
-          socket.emit('chat message', $('#m').val());
-          $('#m').val('');
-          return false;
-        });
-        socket.on('chat message', function(msg){
-          $('#messages').append($('<li>').text(msg));
-          window.scrollTo(0, document.body.scrollHeight);
+          socket.emit('new', {name:$('[name=name]').val(),color:$('[name=color]').val()});
+          $('form').hide();
+          $('#action').show();
+
+          document.addEventListener('swiped', function(e) {
+            socket.emit('action', e.detail.dir)
+          });
+
+          return false
         });
       });
     </script>
